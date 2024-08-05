@@ -55,7 +55,7 @@ let openpose_obj = {
 
 let visibleEyes = true;
 let flipped = false;
-const default_keypoints = [[241,77],[241,120],[191,118],[177,183],[163,252],[298,118],[317,182],[332,245],[225,241],[213,359],[215,454],[270,240],[282,360],[286,456],[232,59],[253,60],[225,70],[260,72]]
+const default_keypoints = [[241, 77], [241, 120], [191, 118], [177, 183], [163, 252], [298, 118], [317, 182], [332, 245], [225, 241], [213, 359], [215, 454], [270, 240], [282, 360], [286, 456], [232, 59], [253, 60], [225, 70], [260, 72]]
 
 async function fileToDataUrl(file) {
     const elem = gradioApp().querySelector(`#${file}`)
@@ -67,14 +67,14 @@ async function fileToDataUrl(file) {
     }).then(e => e.target.result)
 }
 
-function calcResolution(width, height){
+function calcResolution(width, height) {
     const viewportWidth = window.innerWidth / 2.25;
     const viewportHeight = window.innerHeight * 0.75;
     const ratio = Math.min(viewportWidth / width, viewportHeight / height);
-    return {width: width * ratio, height: height * ratio}
+    return { width: width * ratio, height: height * ratio }
 }
 
-function resizeCanvas(width, height){
+function resizeCanvas(width, height) {
     const elem = openpose_editor_elem;
     const canvas = openpose_editor_canvas;
 
@@ -110,13 +110,13 @@ function redo() {
         const content = redo_history.pop();
         undo_history.push(content);
         canvas.loadFromJSON(content, function () {
-        canvas.renderAll();
+            canvas.renderAll();
             lockMode = false;
         });
     }
 }
 
-function setPose(keypoints, clear = true){
+function setPose(keypoints, clear = true) {
     const canvas = openpose_editor_canvas;
     if (clear)
         canvas.clear()
@@ -129,13 +129,13 @@ function setPose(keypoints, clear = true){
         res.push(chunk);
     }
 
-    for (item of res){
+    for (item of res) {
         addPose(item)
         openpose_editor_canvas.discardActiveObject();
     }
 }
 
-function setPoseV2(people, w, h, clear = true){
+function setPoseV2(people, w, h, clear = true) {
     const canvas = openpose_editor_canvas;
 
     if (clear)
@@ -157,38 +157,38 @@ function setPoseV2(people, w, h, clear = true){
     }
 
     let default_relative_keypoints = []
-    for(i=0;i<default_keypoints.length;i++){
+    for (i = 0; i < default_keypoints.length; i++) {
         default_relative_keypoints.push([])
-        for(j=0;j<default_keypoints.length;j++){
+        for (j = 0; j < default_keypoints.length; j++) {
             x = default_keypoints[j][0] - default_keypoints[i][0];
             y = default_keypoints[j][1] - default_keypoints[i][1];
-            default_relative_keypoints[i].push([x,y])
+            default_relative_keypoints[i].push([x, y])
         }
     }
-    kp_connect = (i,j)=>{
-        for(idx=0;idx<connect_keypoints.length;idx++){
+    kp_connect = (i, j) => {
+        for (idx = 0; idx < connect_keypoints.length; idx++) {
             cp = connect_keypoints[idx];
-            if(((cp[0]===i)&&(cp[1]===j)) || ((cp[0]===j)&&(cp[1]===i))){
+            if (((cp[0] === i) && (cp[1] === j)) || ((cp[0] === j) && (cp[1] === i))) {
                 return true;
             }
         }
         return false;
     }
 
-    for (li of res){
+    for (li of res) {
         // bfs propagate
-        while(li.some(([x,y])=>x===-1&&y===-1)){
-            for(i=0;i<li.length;i++){
-                if(li[i][0]===-1){
+        while (li.some(([x, y]) => x === -1 && y === -1)) {
+            for (i = 0; i < li.length; i++) {
+                if (li[i][0] === -1) {
                     continue;
                 }
-                for(j=0;j<li.length;j++){
-                    if(li[j][0]===-1 && kp_connect(i,j)){
+                for (j = 0; j < li.length; j++) {
+                    if (li[j][0] === -1 && kp_connect(i, j)) {
                         x = li[i][0] + default_relative_keypoints[i][j][0]
                         y = li[i][1] + default_relative_keypoints[i][j][1]
                         x = Math.min(Math.max(x, 0), openpose_editor_canvas.width);
                         y = Math.min(Math.max(y, 0), openpose_editor_canvas.height);
-                        li[j] = [x,y];
+                        li[j] = [x, y];
                     }
                 }
             }
@@ -199,8 +199,8 @@ function setPoseV2(people, w, h, clear = true){
     }
 }
 
-function addPose(keypoints=undefined){
-    if (keypoints === undefined){
+function addPose(keypoints = undefined) {
+    if (keypoints === undefined) {
         keypoints = default_keypoints;
     }
 
@@ -244,7 +244,7 @@ function addPose(keypoints=undefined){
     const lines = []
     const circles = []
 
-    for (i = 0; i < connect_keypoints.length; i++){
+    for (i = 0; i < connect_keypoints.length; i++) {
         // 接続されるidxを指定　[0, 1]なら0と1つなぐ
         const item = connect_keypoints[i]
         const line = makeLine(keypoints[item[0]].concat(keypoints[item[1]]), `rgba(${connect_color[i].join(", ")}, 0.7)`)
@@ -253,10 +253,10 @@ function addPose(keypoints=undefined){
         line['id'] = item[0];
     }
 
-    for (i = 0; i < keypoints.length; i++){
+    for (i = 0; i < keypoints.length; i++) {
         list = []
         connect_keypoints.filter((item, idx) => {
-            if(item.includes(i)){
+            if (item.includes(i)) {
                 list.push(lines[idx])
                 return idx
             }
@@ -275,7 +275,7 @@ function addPose(keypoints=undefined){
     canvas.requestRenderAll();
 }
 
-function initCanvas(elem){
+function initCanvas(elem) {
     const canvas = window.openpose_editor_canvas = new fabric.Canvas(elem, {
         backgroundColor: '#000',
         // selection: false,
@@ -294,7 +294,7 @@ function initCanvas(elem){
             if (target.angle === 0) {
                 const rtop = target.top
                 const rleft = target.left
-                for (const item of target._objects){
+                for (const item of target._objects) {
                     let p = item;
                     p.scaleX = 1;
                     p.scaleY = 1;
@@ -304,7 +304,7 @@ function initCanvas(elem){
                     p['_left'] = left;
                     if (p["id"] === 0) {
                         p.line1 && p.line1.set({ 'x1': left, 'y1': top });
-                    }else{
+                    } else {
                         p.line1 && p.line1.set({ 'x2': left, 'y2': top });
                     }
                     if (p['id'] === 14 || p['id'] === 15) {
@@ -320,12 +320,12 @@ function initCanvas(elem){
                 }
             } else {
                 const aCoords = target.aCoords;
-                const center = {'x': (aCoords.tl.x + aCoords.br.x)/2, 'y': (aCoords.tl.y + aCoords.br.y)/2};
+                const center = { 'x': (aCoords.tl.x + aCoords.br.x) / 2, 'y': (aCoords.tl.y + aCoords.br.y) / 2 };
                 const rad = target.angle * Math.PI / 180;
                 const sin = Math.sin(rad);
                 const cos = Math.cos(rad);
-    
-                for (const item of target._objects){
+
+                for (const item of target._objects) {
                     let p = item;
                     const p_top = p.top * target.scaleY * flipY;
                     const p_left = p.left * target.scaleX * flipX;
@@ -335,7 +335,7 @@ function initCanvas(elem){
                     p['_left'] = left;
                     if (p["id"] === 0) {
                         p.line1 && p.line1.set({ 'x1': left, 'y1': top });
-                    }else{
+                    } else {
                         p.line1 && p.line1.set({ 'x2': left, 'y2': top });
                     }
                     if (p['id'] === 14 || p['id'] === 15) {
@@ -353,7 +353,7 @@ function initCanvas(elem){
             var p = target;
             if (p["id"] === 0) {
                 p.line1 && p.line1.set({ 'x1': p.left, 'y1': p.top });
-            }else{
+            } else {
                 p.line1 && p.line1.set({ 'x2': p.left, 'y2': p.top });
             }
             p.line2 && p.line2.set({ 'x1': p.left, 'y1': p.top });
@@ -364,16 +364,16 @@ function initCanvas(elem){
         canvas.renderAll();
     }
 
-    canvas.on('object:moving', function(e) {
+    canvas.on('object:moving', function (e) {
         updateLines(e.target);
     });
 
-    canvas.on('object:scaling', function(e) {
+    canvas.on('object:scaling', function (e) {
         updateLines(e.target);
         canvas.renderAll();
     });
 
-    canvas.on('object:rotating', function(e) {
+    canvas.on('object:rotating', function (e) {
         updateLines(e.target);
         canvas.renderAll();
     });
@@ -391,14 +391,14 @@ function initCanvas(elem){
     undo_history.push(JSON.stringify(canvas));
 
     const json_observer = new MutationObserver((m) => {
-        if(gradioApp().querySelector('#tab_openpose_editor').style.display!=='block') return;
+        if (gradioApp().querySelector('#tab_openpose_editor').style.display !== 'block') return;
         try {
             const json = gradioApp().querySelector("#jsonbox").querySelector("textarea")
-            if(json.value.length!==0) detectImage(json.value);
+            if (json.value.length !== 0) detectImage(json.value);
 
             // reset #jsonbox after detectImage
             json.value = "";
-        } catch(e){console.log(e)}
+        } catch (e) { console.log(e) }
     })
     json_observer.observe(gradioApp().querySelector("#jsonbox"), { attributes: true, subtree: true })
 
@@ -410,13 +410,13 @@ function initCanvas(elem){
     // })
 }
 
-function resetCanvas(){
+function resetCanvas() {
     const canvas = openpose_editor_canvas;
     canvas.clear()
     canvas.backgroundColor = "#000"
 }
 
-function savePNG(){
+function savePNG() {
     openpose_editor_canvas.getObjects("image").forEach((img) => {
         img.set({
             opacity: 0
@@ -442,7 +442,7 @@ function savePNG(){
     return openpose_editor_canvas
 }
 
-function serializeJSON(){
+function serializeJSON() {
     const json = JSON.stringify({
         "width": openpose_editor_canvas.width,
         "height": openpose_editor_canvas.height,
@@ -455,7 +455,7 @@ function serializeJSON(){
     return json;
 }
 
-function saveJSON(){
+function saveJSON() {
     const json = serializeJSON()
     const blob = new Blob([json], {
         type: "application/json"
@@ -468,7 +468,7 @@ function saveJSON(){
     URL.revokeObjectURL(a.href);
 }
 
-async function loadJSON(file){
+async function loadJSON(file) {
     const url = await fileToDataUrl(file)
     const response = await fetch(url)
     const json = await response.json()
@@ -478,50 +478,50 @@ async function loadJSON(file){
         resizeCanvas(json["canvas_width"], json["canvas_height"])
         w = json["canvas_width"];
         h = json["canvas_height"];
-    }else if (json["width"] && json["height"]) {
+    } else if (json["width"] && json["height"]) {
         resizeCanvas(json["width"], json["height"])
         w = json["width"];
         h = json["height"];
-    }else{
+    } else {
         throw new Error('width, height is invalid');
     }
     if (json["people"] && json["people"][0]["pose_keypoints_2d"]) {
         setPoseV2(json["people"], w, h)
-    }else if (json["keypoints"].length % 18 === 0) {
+    } else if (json["keypoints"].length % 18 === 0) {
         setPose(json["keypoints"])
-    }else{
+    } else {
         throw new Error('keypoints is invalid')
     }
     return [w, h]
 }
 
-function savePreset(){
+function savePreset() {
     var name = prompt("Preset Name")
     const json = serializeJSON()
     return [name, json]
 }
 
-function loadPreset(json){
+function loadPreset(json) {
     try {
         json = JSON.parse(json)
         if (json["width"] && json["height"]) {
             resizeCanvas(json["width"], json["height"])
-        }else{
+        } else {
             throw new Error('width, height is invalid');
         }
         if (json["keypoints"].length % 18 === 0) {
             setPose(json["keypoints"])
-        }else{
+        } else {
             throw new Error('keypoints is invalid')
         }
         return [json["width"], json["height"]]
-    }catch(e){
+    } catch (e) {
         console.error(e)
         alert("Invalid JSON")
     }
 }
 
-async function addBackground(file){
+async function addBackground(file) {
     const url = await fileToDataUrl(file)
     openpose_editor_canvas.setBackgroundImage(url, openpose_editor_canvas.renderAll.bind(openpose_editor_canvas), {
         opacity: 0.5
@@ -532,14 +532,14 @@ async function addBackground(file){
     return [img.width, img.height]
 }
 
-function detectImage(raw){
+function detectImage(raw) {
     const json = JSON.parse(raw)
 
     let candidate = json["candidate"]
     let subset = json["subset"]
     const subsets = []
 
-    for (i=0; i < subset.length; i+= 20) {
+    for (i = 0; i < subset.length; i += 20) {
         const sub = subset.slice(i, i + 20);
         subsets.push(sub);
     }
@@ -551,57 +551,57 @@ function detectImage(raw){
     }
 }
 
-function detectSubset(candidate, subset, clear = true){
+function detectSubset(candidate, subset, clear = true) {
     const li = []
-    for (i=0; 18 > i; i++){
-        if (Number.isInteger(subset[i]) && subset[i] >= 0){
+    for (i = 0; 18 > i; i++) {
+        if (Number.isInteger(subset[i]) && subset[i] >= 0) {
             li.push(candidate[subset[i]])
-        }else{
-            li.push([-1,-1])
+        } else {
+            li.push([-1, -1])
         }
     }
-    if(li.length === 0){
+    if (li.length === 0) {
         const bgimage = openpose_editor_canvas.backgroundImage
         setPose(li);
         openpose_editor_canvas.backgroundImage = bgimage
         return;
     }
-    if(li.every(([x,y])=>x===-1&&y===-1)){
+    if (li.every(([x, y]) => x === -1 && y === -1)) {
         const ra_width = Math.floor(Math.random() * openpose_editor_canvas.width)
         const ra_height = Math.floor(Math.random() * openpose_editor_canvas.height)
         li[0] = [ra_width, ra_height]
     }
     default_relative_keypoints = []
-    for(i=0;i<default_keypoints.length;i++){
+    for (i = 0; i < default_keypoints.length; i++) {
         default_relative_keypoints.push([])
-        for(j=0;j<default_keypoints.length;j++){
+        for (j = 0; j < default_keypoints.length; j++) {
             x = default_keypoints[j][0] - default_keypoints[i][0];
             y = default_keypoints[j][1] - default_keypoints[i][1];
-            default_relative_keypoints[i].push([x,y])
+            default_relative_keypoints[i].push([x, y])
         }
     }
-    kp_connect = (i,j)=>{
-        for(idx=0;idx<connect_keypoints.length;idx++){
+    kp_connect = (i, j) => {
+        for (idx = 0; idx < connect_keypoints.length; idx++) {
             cp = connect_keypoints[idx];
-            if(((cp[0]===i)&&(cp[1]===j)) || ((cp[0]===j)&&(cp[1]===i))){
+            if (((cp[0] === i) && (cp[1] === j)) || ((cp[0] === j) && (cp[1] === i))) {
                 return true;
             }
         }
         return false;
     }
     // bfs propagate
-    while(li.some(([x,y])=>x===-1&&y===-1)){
-        for(i=0;i<li.length;i++){
-            if(li[i][0]===-1){
+    while (li.some(([x, y]) => x === -1 && y === -1)) {
+        for (i = 0; i < li.length; i++) {
+            if (li[i][0] === -1) {
                 continue;
             }
-            for(j=0;j<li.length;j++){
-                if(li[j][0]===-1 && kp_connect(i,j)){
+            for (j = 0; j < li.length; j++) {
+                if (li[j][0] === -1 && kp_connect(i, j)) {
                     x = li[i][0] + default_relative_keypoints[i][j][0]
                     y = li[i][1] + default_relative_keypoints[i][j][1]
                     x = Math.min(Math.max(x, 0), openpose_editor_canvas.width);
                     y = Math.min(Math.max(y, 0), openpose_editor_canvas.height);
-                    li[j] = [x,y];
+                    li[j] = [x, y];
                 }
             }
         }
@@ -611,7 +611,7 @@ function detectSubset(candidate, subset, clear = true){
     openpose_editor_canvas.backgroundImage = bgimage
 }
 
-function sendImage(type, index){
+function sendImage(type, index) {
     openpose_editor_canvas.getObjects("image").forEach((img) => {
         img.set({
             opacity: 0
@@ -626,27 +626,27 @@ function sendImage(type, index){
         dt.items.add(file);
         const list = dt.files
         const selector = type === "txt2img" ? "#txt2img_script_container" : "#img2img_script_container"
-        if (type === "txt2img"){
+        if (type === "txt2img") {
             switch_to_txt2img()
-        }else if(type === "img2img"){
+        } else if (type === "img2img") {
             switch_to_img2img()
         }
 
-        const isNew =  window.gradio_config.version.replace("\n", "") >= "3.23.0"
+        const isNew = window.gradio_config.version.replace("\n", "") >= "3.23.0"
         const accordion_selector = isNew ? "#controlnet > .label-wrap > .icon" : "#controlnet .transition"
         const accordion = gradioApp().querySelector(selector).querySelector(accordion_selector)
         if (isNew ? accordion.style.transform == "rotate(90deg)" : accordion.classList.contains("rotate-90")) {
             accordion.click()
         }
-        
+
         let input = gradioApp().querySelector(selector).querySelector("#controlnet").querySelector("input[type='file']");
-        
-        const input_image = (input) =>{
+
+        const input_image = (input) => {
             try {
-                if(input.previousElementSibling  
-                    && input.previousElementSibling.previousElementSibling 
+                if (input.previousElementSibling
+                    && input.previousElementSibling.previousElementSibling
                     && input.previousElementSibling.previousElementSibling.querySelector("button[aria-label='Clear']")) {
-                input.previousElementSibling.previousElementSibling.querySelector("button[aria-label='Clear']").click()
+                    input.previousElementSibling.previousElementSibling.querySelector("button[aria-label='Clear']").click()
                 }
             } catch (e) {
                 console.error(e)
@@ -657,20 +657,20 @@ function sendImage(type, index){
             input.dispatchEvent(event);
         }
 
-        if (input == null){
+        if (input == null) {
             const callback = (observer) => {
                 input = gradioApp().querySelector(selector).querySelector("#controlnet").querySelector("input[type='file']");
                 if (input == null) {
                     console.error('input[type=file] NOT exists')
                     return
-                }else{
+                } else {
                     input_image(input)
                     observer.disconnect()
                 }
             }
             const observer = new MutationObserver(callback);
             observer.observe(gradioApp().querySelector(selector).querySelector("#controlnet"), { childList: true });
-        }else{
+        } else {
             input_image(input)
         }
     });
@@ -749,7 +749,7 @@ function json_onDrop(event) {
     }
 }
 
-onUiLoaded(function() {
+onUiLoaded(function () {
     initCanvas(gradioApp().querySelector('#openpose_editor_canvas'))
 
     var canvas_drag_overlay = document.createElement("div");
@@ -774,7 +774,7 @@ onUiLoaded(function() {
     detect_button.addEventListener("dragleave", button_onDragLeave);
     detect_button.addEventListener("drop", detect_onDrop);
     detect_button.classList.add("gr-button-secondary");
-    
+
     var json_button = gradioApp().querySelector("#openpose_json_button")
     json_button.addEventListener("dragover", button_onDragOver);
     json_button.addEventListener("dragleave", button_onDragLeave);
