@@ -128,6 +128,7 @@ def on_ui_tabs():
                             value=0,
                             label="Control Net Unit",
                             interactive=True,
+                            precision=0,
                         )
 
                         send_t2t = gr.Button(value="Send to txt2img")

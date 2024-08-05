@@ -611,75 +611,64 @@ function detectSubset(candidate, subset, clear = true) {
     openpose_editor_canvas.backgroundImage = bgimage
 }
 
+/** @param {string} type @param {number} index  */
 function sendImage(type, index) {
     openpose_editor_canvas.getObjects("image").forEach((img) => {
         img.set({
             opacity: 0
         });
     })
-    if (openpose_editor_canvas.backgroundImage) openpose_editor_canvas.backgroundImage.opacity = 0
+    if (openpose_editor_canvas.backgroundImage) openpose_editor_canvas.backgroundImage.opacity = 0;
+
     openpose_editor_canvas.discardActiveObject();
     openpose_editor_canvas.renderAll()
+
+    if (type === "img2img") {
+        const cb = gradioApp().getElementById(`img2img_controlnet_ControlNet-${index}_controlnet_same_img2img_checkbox`).querySelector("input[type='checkbox']");
+        cb.checked = true;
+        updateInput(cb);
+    }
+
     openpose_editor_elem.toBlob((blob) => {
         const file = new File(([blob]), "pose.png")
+        const cnet = gradioApp().getElementById(`${type === "txt2img" ? "txt" : "img"}2img_controlnet_ControlNet-${index}_input_image`);
+        const cnet_input = cnet.querySelector("input[type='file']");
         const dt = new DataTransfer();
         dt.items.add(file);
-        const list = dt.files
-        const selector = type === "txt2img" ? "#txt2img_script_container" : "#img2img_script_container"
-        if (type === "txt2img") {
-            switch_to_txt2img()
-        } else if (type === "img2img") {
-            switch_to_img2img()
-        }
 
-        const isNew = window.gradio_config.version.replace("\n", "") >= "3.23.0"
-        const accordion_selector = isNew ? "#controlnet > .label-wrap > .icon" : "#controlnet .transition"
-        const accordion = gradioApp().querySelector(selector).querySelector(accordion_selector)
-        if (isNew ? accordion.style.transform == "rotate(90deg)" : accordion.classList.contains("rotate-90")) {
-            accordion.click()
-        }
+        const list = dt.files;
+        cnet_input.files = list;
 
-        let input = gradioApp().querySelector(selector).querySelector("#controlnet").querySelector("input[type='file']");
+        cnet_input.dispatchEvent(new Event('change', {
+            'bubbles': true,
+            "composed": true
+        }));
 
-        const input_image = (input) => {
-            try {
-                if (input.previousElementSibling
-                    && input.previousElementSibling.previousElementSibling
-                    && input.previousElementSibling.previousElementSibling.querySelector("button[aria-label='Clear']")) {
-                    input.previousElementSibling.previousElementSibling.querySelector("button[aria-label='Clear']").click()
-                }
-            } catch (e) {
-                console.error(e)
+        const observer = new IntersectionObserver((entries, observer) => {
+            if (entries[0].intersectionRatio > 0) {
+                setTimeout(() => {
+                    const clear_btn = cnet.querySelector("button[aria-label='Clear']");
+                    clear_btn.click();
+                }, 50);
+                observer.disconnect()
             }
-            input.value = "";
-            input.files = list;
-            const event = new Event('change', { 'bubbles': true, "composed": true });
-            input.dispatchEvent(event);
-        }
+        }, { root: document.documentElement });
 
-        if (input == null) {
-            const callback = (observer) => {
-                input = gradioApp().querySelector(selector).querySelector("#controlnet").querySelector("input[type='file']");
-                if (input == null) {
-                    console.error('input[type=file] NOT exists')
-                    return
-                } else {
-                    input_image(input)
-                    observer.disconnect()
-                }
-            }
-            const observer = new MutationObserver(callback);
-            observer.observe(gradioApp().querySelector(selector).querySelector("#controlnet"), { childList: true });
-        } else {
-            input_image(input)
-        }
+        observer.observe(cnet);
     });
+
+    if (type === "txt2img")
+        switch_to_txt2img()
+    else
+        switch_to_img2img()
+
     openpose_editor_canvas.getObjects("image").forEach((img) => {
         img.set({
             opacity: 1
         });
     })
-    if (openpose_editor_canvas.backgroundImage) openpose_editor_canvas.backgroundImage.opacity = 0.5
+
+    if (openpose_editor_canvas.backgroundImage) openpose_editor_canvas.backgroundImage.opacity = 0.5;
     openpose_editor_canvas.renderAll()
 }
 
